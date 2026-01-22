@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.product import Product
-from app.schemas.schemas import ProductCreate
+from app.schemas import ProductCreate
 
 # ============ PRODUCTOS ============
 

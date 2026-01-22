@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.user import User
-from app.schemas.schemas import  UserCreate
+from app.schemas import UserCreate
 
 # ============ USUARIOS ============
 

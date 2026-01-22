@@ -4,20 +4,20 @@ from sqlalchemy.orm import Session
 
 import app.service.category as crud
 from app.deps.deps import get_db
-from app.schemas import schemas
+from app.schemas import CategoryCreate, CategoryResponse
 
 api_router = APIRouter()
 
 # ============ CATEGORIAS ============
-@api_router.get("/categories/", response_model=list[schemas.CategoryResponse])
+@api_router.get("/categories/", response_model=list[CategoryResponse])
 async def read_categories(db: Session = Depends(get_db)):
     categories = crud.get_categories(db)
     return categories
 
 
-@api_router.post("/categories/", response_model=schemas.CategoryResponse)
+@api_router.post("/categories/", response_model=CategoryResponse)
 async def create_category(
-    category: schemas.CategoryCreate, db: Session = Depends(get_db)
+    category: CategoryCreate, db: Session = Depends(get_db)
 ):
     created_category = crud.create_category(db, category)
     return created_category

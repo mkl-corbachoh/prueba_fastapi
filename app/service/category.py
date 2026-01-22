@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.category import Category
-from app.schemas.schemas import CategoryCreate
+from app.schemas import CategoryCreate
 
 # ============ CATEGORÍAS ============
 

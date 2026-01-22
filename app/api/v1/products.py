@@ -3,13 +3,13 @@ from sqlalchemy.orm import Session
 
 import app.service.product as crud
 from app.deps.deps import get_db, reqires_admin
-from app.schemas import schemas
+from app.schemas import ProductCreate, ProductResponse
 
 
 api_router = APIRouter()
 
 # ============ PRODUCTOS ============
-@api_router.get("/products/", response_model=list[schemas.ProductResponse])
+@api_router.get("/products/", response_model=list[ProductResponse])
 async def read_products(db: Session = Depends(get_db)):
     products = crud.get_products(db)
     return products
@@ -17,24 +17,24 @@ async def read_products(db: Session = Depends(get_db)):
 
 @api_router.post(
     "/products/",
-    response_model=schemas.ProductResponse,
+    response_model=ProductResponse,
     dependencies=[Depends(reqires_admin)],
 )  # Protege la ruta para que solo admins puedan crear productos
-async def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)):
+async def create_product(product: ProductCreate, db: Session = Depends(get_db)):
     created_product = crud.create_product(db, product)
     return created_product
 
 
 @api_router.put(
     "/products/{product_id}",
-    response_model=schemas.ProductResponse,
+    response_model=ProductResponse,
     dependencies=[
         Depends(reqires_admin)
     ],  # Protege la ruta para que solo admins puedan actualizar productos
 )
 async def update_product(
     product_id: int,
-    updated_product: schemas.ProductCreate,
+    updated_product: ProductCreate,
     db: Session = Depends(get_db),
 ):
     updated_product = crud.update_product(db, product_id, updated_product)
