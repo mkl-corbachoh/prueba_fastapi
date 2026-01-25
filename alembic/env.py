@@ -1,5 +1,5 @@
 from logging.config import fileConfig
-from app.models import product, category, user
+from app.models import product, category, user, orders
 from app.db.database import Base, engine
 
 from sqlalchemy import engine_from_config
