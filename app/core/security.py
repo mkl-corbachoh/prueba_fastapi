@@ -2,14 +2,12 @@
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta, UTC
-import os
+from app.core.config import settings
 
 # Configuraciones
-SECRET_KEY = os.getenv(
-    "SECRET_KEY", "your_secret_key"
-)  # varible secreta debe venir del entorno
-ALGORITHM = "HS256"  # Algoritmo de encriptacion
-ACCESS_TOKEN_EXPIRE_MINUTES = 30  # Tiempo de expiracion del token
+SECRET_KEY = settings.SECRET_KEY  # varible secreta debe venir del entorno
+ALGORITHM = settings.ALGORITHM  # Algoritmo de encriptacion
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES  # Tiempo de expiracion del token
 
 # Configuracion de Passlib para hashear contraseñas
 pwd_context = CryptContext(
