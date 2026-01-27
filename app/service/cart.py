@@ -27,9 +27,9 @@ def add_item_to_cart(db: Session, cart_id: int, product_id: int, quantity: int =
 
 def delete_item_from_cart(db: Session, item_id: int):
     item = db.query(CartItem).get(item_id)
-    if item:
-        db.delete(item)
-        db.commit()
+    if not item:
+        return None
 
-    db.refresh(item)
+    db.delete(item)
+    db.commit()
     return item

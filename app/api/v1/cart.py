@@ -14,7 +14,7 @@ def get_cart(db: Session = Depends(get_db), current_user = Depends(get_current_u
 def add_item(item_id: int, quantity: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     cart = get_cart_by_user(db, current_user.id)
     try:
-        cart_item = add_item_to_cart(db, cart.cart_id, item_id, quantity)
+        cart_item = add_item_to_cart(db, cart.id, item_id, quantity)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"message": "Item added to cart", "item": cart_item}

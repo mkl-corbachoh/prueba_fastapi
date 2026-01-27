@@ -37,6 +37,35 @@ def create_product(client, *, name="Product A", price=12.5, in_stock=True, categ
     return client.post("/api/v1/products/products/", json=payload)
 
 
+def create_admin_and_token(client):
+    admin_response = create_user(
+        client,
+        username="admin",
+        email="admin@example.com",
+        password="adminpass",
+        is_admin=True,
+    )
+    assert admin_response.status_code == 201
+    login_response = login_user(client, username="admin@example.com", password="adminpass")
+    assert login_response.status_code == 200
+    token = login_response.json()["access_token"]
+    return auth_header(token)
+
+
+def create_user_and_token(client, *, username, email, password):
+    create_response = create_user(
+        client,
+        username=username,
+        email=email,
+        password=password,
+        is_admin=False,
+    )
+    assert create_response.status_code == 201
+    login_response = login_user(client, username=email, password=password)
+    assert login_response.status_code == 200
+    token = login_response.json()["access_token"]
+    return auth_header(token)
+
 
 def test_health_check(client):
     response = client.get("/api/v1/health/healtcheck/")
@@ -60,23 +89,8 @@ def test_categories_crud(client):
 
 
 def test_products_crud(client):
-    # Crear un usuario admin
-    admin_response = create_user(
-        client,
-        username="admin",
-        email="admin@example.com",
-        password="adminpass",
-        is_admin=True,
-    )
-    assert admin_response.status_code == 201
-    
-    # Login como admin
-    login_response = login_user(client, username="admin@example.com", password="adminpass")
-    assert login_response.status_code == 200
-    admin_token = login_response.json()["access_token"]
-    admin_headers = auth_header(admin_token)
-    
-    # Crear categoría
+    admin_headers = create_admin_and_token(client)
+
     category = create_category(client, name="Hardware").json()
 
     # Crear producto como admin
@@ -126,18 +140,72 @@ def test_user_login_me(client):
 
 
 def test_admin_ping_validation_error(client):
-    create_response = create_user(
-        client,
-        username="admin",
-        email="admin@example.com",
-        password="adminpass",
-        is_admin=True,
+    admin_headers = create_admin_and_token(client)
+    ping_response = client.get("/api/v1/auth/admin/ping", headers=admin_headers)
+    assert ping_response.status_code == 200
+    assert ping_response.json()["role"] == "admin"
+
+
+def test_admin_ping_forbidden(client):
+    user_headers = create_user_and_token(
+        client, username="user1", email="user1@example.com", password="secret"
     )
-    assert create_response.status_code == 201
+    ping_response = client.get("/api/v1/auth/admin/ping", headers=user_headers)
+    assert ping_response.status_code == 403
 
-    login_response = login_user(client, username="admin@example.com", password="adminpass")
-    assert login_response.status_code == 200
-    token = login_response.json()["access_token"]
 
-    ping_response = client.get("/api/v1/auth/admin/ping", headers=auth_header(token))
-    assert ping_response.status_code == 500
+def test_login_invalid_credentials(client):
+    create_user(
+        client,
+        username="maria",
+        email="maria@example.com",
+        password="secret",
+        is_admin=False,
+    )
+    login_response = login_user(client, username="maria@example.com", password="wrongpass")
+    assert login_response.status_code == 401
+
+
+def test_cart_and_order_flow(client):
+    admin_headers = create_admin_and_token(client)
+    category = create_category(client, name="Gadgets").json()
+    product_response = client.post(
+        "/api/v1/products/products/",
+        json={"name": "Mouse", "price": 20.0, "in_stock": True, "category_id": category["id"]},
+        headers=admin_headers,
+    )
+    assert product_response.status_code == 200
+    product_id = product_response.json()["id"]
+
+    user_headers = create_user_and_token(
+        client, username="buyer", email="buyer@example.com", password="secret"
+    )
+
+    get_cart_response = client.get("/api/v1/cart/", headers=user_headers)
+    assert get_cart_response.status_code == 200
+
+    add_response = client.post(
+        f"/api/v1/cart/add/{product_id}?quantity=2", headers=user_headers
+    )
+    assert add_response.status_code == 200
+    item_id = add_response.json()["item"]["id"]
+    assert add_response.json()["item"]["quantity"] == 2
+
+    order_response = client.post("/api/v1/order/confirm", headers=user_headers)
+    assert order_response.status_code == 200
+    data = order_response.json()
+    assert "order_id" in data
+    assert data["total"] == 40.0
+
+    delete_response = client.delete(
+        f"/api/v1/cart/delete/{item_id}", headers=user_headers
+    )
+    assert delete_response.status_code == 404
+
+
+def test_order_confirm_empty_cart(client):
+    user_headers = create_user_and_token(
+        client, username="empty", email="empty@example.com", password="secret"
+    )
+    response = client.post("/api/v1/order/confirm", headers=user_headers)
+    assert response.status_code == 400
