@@ -20,7 +20,7 @@ def get_db():
 
 # ===== Dependencias de la aplicacion =====
 oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="login"
+    tokenUrl="api/v1/auth/login"
 )  # Crea el esquema OAuth2 con password (y flujo de "bearer")
 
 

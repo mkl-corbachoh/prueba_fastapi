@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy.orm import relationship
 from app.db.database import Base
 
 class User(Base):
@@ -15,3 +16,4 @@ class User(Base):
     )  # Tipo de items unicas no nulas
     hashed_password = Column(String, nullable=False)  # Tipo de items no nulas
     is_admin = Column(Boolean, default=False)  # Tipo de items con valor por defecto
+    cart = relationship("Cart", back_populates="user", uselist=False) # uselist 1 carrito por usuario

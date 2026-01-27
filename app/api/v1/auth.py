@@ -39,6 +39,6 @@ async def read_current_user(current_user: User = Depends(get_current_user)):
     return current_user
 
 
-@api_router.get("/admin/ping", response_model=UserResponse)
+@api_router.get("/admin/ping")
 async def admin_ping(_admin=Depends(reqires_admin)):
     return {"ok": True, "role": "admin"}

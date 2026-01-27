@@ -8,7 +8,7 @@ class Cart(Base):
     __tablename__ = "carts"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
-    user = relationship("User", back_populates="carts")
+    user = relationship("User", back_populates="cart")
     items = relationship("CartItem", back_populates="cart", cascade="all, delete") # una vez se elimina un carrito, se eliminan sus items
 
 
